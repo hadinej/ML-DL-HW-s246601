@@ -38,6 +38,10 @@ class Caltech(VisionDataset):
             for i in range(len(self.read_train_lines)):
                 dict_keys.append(self.read_train_lines[i][0:12])
             dict_keys = list(dict.fromkeys(dict_keys))
+            
+            # make np array to be used later for __getitem__
+            dict_keys_arr=np.array(dict_keys)
+            self.dict_keys_arr=np.delete(dict_keys_arr,4)
 
             # using fromkeys() method 
             index_dict = dict.fromkeys(dict_keys, []) 
@@ -71,6 +75,10 @@ class Caltech(VisionDataset):
             for i in range(len(self.read_test_lines)):
                 dict_keys.append(self.read_test_lines[i][0:12])
             dict_keys = list(dict.fromkeys(dict_keys))
+            
+            # make np array to be used later for __getitem__
+            dict_keys_arr=np.array(dict_keys)
+            self.dict_keys_arr=np.delete(dict_keys_arr,4)
 
             # using fromkeys() method 
             index_dict = dict.fromkeys(dict_keys, []) 
@@ -87,6 +95,7 @@ class Caltech(VisionDataset):
             # -------------------------------------------------------------------------------------------   
             # now removing BACKGROUND_Google by removing it from dict.
             del index_dict['BACKGROUND_G']
+            
             
             self.index_dict=index_dict
     # ---------------------------------------------------------------------------------------------------
@@ -142,17 +151,31 @@ class Caltech(VisionDataset):
         '''
         
         # -----------------------------------------------------------------------------------------------
-        #creating a function for retreving each index key which is the label
+        #creating a function for retreving each index key which is the label and converting to int
         def get_key(val):
+
             for n in range(len(list(self.index_dict.values()))):
                 if val in list(self.index_dict.values())[n]:
-                    return list(self.index_dict.keys())[n]
+                    result = np.where(self.dict_keys_arr == list(self.index_dict.keys())[n])
+                    return int(result[0][0])
+                
+#         def get_key(val):
+#             for n in range(len(list(self.index_dict.values()))):
+#                 if val in list(self.index_dict.values())[n]:
+#                     return list(self.index_dict.keys())[n]
+
+
+                
+#         def to_categorical(y, num_classes):
+#             """ 1-hot encodes a tensor """
+#             return np.eye(num_classes, dtype='uint8')[y]
 
 
         if self.split == 'train':
             readlines=self.read_train_lines
         if self.split == 'test':
             readlines=self.read_test_lines
+        
         
         image, label = (pil_loader(self.root+'101_ObjectCategories/'+readlines[index][:-1]),get_key(index)) 
 
